@@ -21,36 +21,36 @@ def escape_as(text):
 
 def parse_media_folder(folder_path):
     cues = {}
-    for entry in os.listdir(folder_path):
-        full_path = os.path.join(folder_path, entry)
-        if not os.path.isfile(full_path):
-            continue
+    # os.walk recursively traverses all subfolders
+    for root, _, files in os.walk(folder_path):
+        for entry in files:
+            full_path = os.path.join(root, entry)
 
-        multi_match = MULTI_CH_PATTERN.match(entry)
-        if multi_match:
-            act, scene, scene_cue, ch, desc = (
-                int(multi_match.group(1)),
-                int(multi_match.group(2)),
-                int(multi_match.group(3)),
-                int(multi_match.group(4)),
-                multi_match.group(5).replace("_", " "),
-            )
-        else:
-            single_match = SINGLE_CH_PATTERN.match(entry)
-            if single_match:
+            multi_match = MULTI_CH_PATTERN.match(entry)
+            if multi_match:
                 act, scene, scene_cue, ch, desc = (
-                    int(single_match.group(1)),
-                    int(single_match.group(2)),
-                    int(single_match.group(3)),
-                    1,
-                    single_match.group(4).replace("_", " "),
+                    int(multi_match.group(1)),
+                    int(multi_match.group(2)),
+                    int(multi_match.group(3)),
+                    int(multi_match.group(4)),
+                    multi_match.group(5).replace("_", " "),
                 )
             else:
-                continue
+                single_match = SINGLE_CH_PATTERN.match(entry)
+                if single_match:
+                    act, scene, scene_cue, ch, desc = (
+                        int(single_match.group(1)),
+                        int(single_match.group(2)),
+                        int(single_match.group(3)),
+                        1,
+                        single_match.group(4).replace("_", " "),
+                    )
+                else:
+                    continue
 
-        cues.setdefault(act, {}).setdefault(scene, {}).setdefault(scene_cue, []).append(
-            {"channel": ch, "description": desc, "file_path": full_path}
-        )
+            cues.setdefault(act, {}).setdefault(scene, {}).setdefault(
+                scene_cue, []
+            ).append({"channel": ch, "description": desc, "file_path": full_path})
 
     return cues
 
@@ -156,7 +156,7 @@ def generate_applescript(structured_data):
 def build_qlab_show(folder_path):
     structured_data = parse_media_folder(folder_path)
     if not structured_data:
-        print("Error: No matching media files found in directory.")
+        print("Error: No matching media files found in directory or subdirectories.")
         return
 
     script = generate_applescript(structured_data)
