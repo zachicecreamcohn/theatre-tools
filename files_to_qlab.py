@@ -4,7 +4,7 @@ import re
 import subprocess
 
 MULTI_CH_PATTERN = re.compile(
-    r"^(\d)(\d{2})_(\d{3})_(\d{3})_(.+)\.(mp4|mov|m4v|png|jpg|jpeg|tga|tiff)$",
+    r"^(\d)(\d{2})_(\d{3})_(\d+)_(.+)\.(mp4|mov|m4v|png|jpg|jpeg|tga|tiff)$",
     re.IGNORECASE,
 )
 SINGLE_CH_PATTERN = re.compile(
@@ -21,7 +21,6 @@ def escape_as(text):
 
 def parse_media_folder(folder_path):
     cues = {}
-    # os.walk recursively traverses all subfolders
     for root, _, files in os.walk(folder_path):
         for entry in files:
             full_path = os.path.join(root, entry)
